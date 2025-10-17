@@ -356,12 +356,16 @@ export default function Home() {
         {/* Chart */}
         {chartData.length > 0 && (() => {
           // Calculate price change percentage
-          const firstPrice = typeof chartData[0]?.openUSD === 'string'
-            ? parseFloat(chartData[0].openUSD)
-            : chartData[0]?.openUSD || 0;
-          const lastPrice = typeof chartData[chartData.length - 1]?.closeUSD === 'string'
-            ? parseFloat(chartData[chartData.length - 1].closeUSD)
-            : chartData[chartData.length - 1]?.closeUSD || 0;
+          const firstPriceRaw = chartData[0]?.openUSD;
+          const firstPrice = typeof firstPriceRaw === 'string'
+            ? parseFloat(firstPriceRaw)
+            : (firstPriceRaw || 0);
+
+          const lastPriceRaw = chartData[chartData.length - 1]?.closeUSD;
+          const lastPrice = typeof lastPriceRaw === 'string'
+            ? parseFloat(lastPriceRaw)
+            : (lastPriceRaw || 0);
+
           const priceChange = lastPrice - firstPrice;
           const priceChangePercent = firstPrice > 0 ? ((priceChange / firstPrice) * 100) : 0;
           const isPositive = priceChange >= 0;
