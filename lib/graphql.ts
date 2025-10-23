@@ -6,7 +6,7 @@ const ENDPOINTS = {
   staging: "https://gcp-staging-gateway.rift.ai/graphql/api",
 };
 
-const QUERY = `
+const PRICE_QUERY = `
   query TokenPriceData($input: PriceHistoryCandlesInput!) {
     performance {
       priceHistoryCandles(input: $input) {
@@ -27,6 +27,86 @@ const QUERY = `
   }
 `;
 
+const SIGNALS_QUERY = `
+  query Signals($input: SignalsInput!) {
+    signals {
+      signals(input: $input) {
+        signals {
+          description
+          direction
+          id
+          name
+          token {
+            icon
+            logoURI
+            name
+            symbol
+            description
+            priceUsd
+          }
+          lastTrigger {
+            triggeredAt
+            id
+            price
+            roiPrice
+            roiBPS
+          }
+          stats {
+            pastROIBPS
+            rr
+            timeframe
+            winRateBPS
+            frequency
+          }
+        }
+        total
+      }
+    }
+  }
+`;
+
+const SIGNAL_DETAIL_QUERY = `
+  query Signal($signalId: String!) {
+    signals {
+      signal(id: $signalId) {
+        id
+        description
+        direction
+        lastTrigger {
+          id
+          price
+          roiBPS
+          roiPrice
+          triggeredAt
+        }
+        name
+        stats {
+          frequency
+          lastCompletedTriggers {
+            id
+            price
+            roiBPS
+            roiPrice
+            triggeredAt
+          }
+          pastROIBPS
+          rr
+          timeframe
+          winRateBPS
+        }
+        token {
+          icon
+          logoURI
+          name
+          symbol
+          description
+          priceUsd
+        }
+      }
+    }
+  }
+`;
+
 export async function fetchTokenPriceData(
   endpoint: ApiEndpoint,
   input: PriceHistoryCandlesInput
@@ -38,7 +118,7 @@ export async function fetchTokenPriceData(
       },
     });
 
-    const data = await client.request<GraphQLResponse>(QUERY, { input });
+    const data = await client.request<GraphQLResponse>(PRICE_QUERY, { input });
 
     if (!data) {
       throw new Error("Empty response from API");
@@ -62,5 +142,77 @@ export async function fetchTokenPriceData(
     }
 
     throw new Error(error.message || "Failed to fetch data from API");
+  }
+}
+
+export async function fetchSignals(
+  endpoint: ApiEndpoint,
+  input: Record<string, any> = {}
+): Promise<any> {
+  try {
+    const client = new GraphQLClient(ENDPOINTS[endpoint], {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await client.request(SIGNALS_QUERY, { input });
+
+    if (!data) {
+      throw new Error("Empty response from API");
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("GraphQL Error:", error);
+
+    if (error.response?.errors) {
+      const errorMessages = error.response.errors
+        .map((err: any) => err.message)
+        .join(", ");
+      throw new Error(`API Error: ${errorMessages}`);
+    }
+
+    if (error.message.includes("fetch")) {
+      throw new Error("Network error. Please check your internet connection.");
+    }
+
+    throw new Error(error.message || "Failed to fetch signals from API");
+  }
+}
+
+export async function fetchSignalDetail(
+  endpoint: ApiEndpoint,
+  signalId: string
+): Promise<any> {
+  try {
+    const client = new GraphQLClient(ENDPOINTS[endpoint], {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await client.request(SIGNAL_DETAIL_QUERY, { signalId });
+
+    if (!data) {
+      throw new Error("Empty response from API");
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("GraphQL Error:", error);
+
+    if (error.response?.errors) {
+      const errorMessages = error.response.errors
+        .map((err: any) => err.message)
+        .join(", ");
+      throw new Error(`API Error: ${errorMessages}`);
+    }
+
+    if (error.message.includes("fetch")) {
+      throw new Error("Network error. Please check your internet connection.");
+    }
+
+    throw new Error(error.message || "Failed to fetch signal detail from API");
   }
 }

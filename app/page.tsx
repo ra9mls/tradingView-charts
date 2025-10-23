@@ -4,13 +4,18 @@ import { useState } from "react";
 import TradingViewChart, { type ChartType } from "@/components/TradingViewChart";
 import TokenSearchModal from "@/components/TokenSearchModal";
 import ThemeToggle from "@/components/ThemeToggle";
+import StrategiesView from "@/components/StrategiesView";
+import SignalsListView from "@/components/SignalsListView";
 import { fetchTokenPriceData } from "@/lib/graphql";
 import { getTokenBySymbol } from "@/lib/tokens";
 import type { Interval, ApiEndpoint, TokenPriceData, Token } from "@/types/chart";
 
 type TimeRangePreset = "1D" | "7D" | "1M" | "3M" | "1Y" | "custom";
 
+type ViewMode = "chart" | "signals" | "signalsList";
+
 export default function Home() {
+  const [viewMode, setViewMode] = useState<ViewMode>("chart");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<Token | null>(getTokenBySymbol("cbBTC") || null);
   const [interval, setInterval] = useState<Interval>("INTERVAL_1H");
@@ -181,15 +186,56 @@ export default function Home() {
   return (
     <main className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto">
-        {/* Header with Theme Toggle */}
+        {/* Header with Navigation and Theme Toggle */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Solana Token Price Chart</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+              {viewMode === "chart" && "Solana Token Price Chart"}
+              {viewMode === "signals" && "Market Signals"}
+              {viewMode === "signalsList" && "Market Signals"}
+            </h1>
+            <div className="flex gap-2 ml-8">
+              <button
+                onClick={() => setViewMode("chart")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
+                  viewMode === "chart"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Price Chart
+              </button>
+              <button
+                onClick={() => setViewMode("signals")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
+                  viewMode === "signals"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Signals Comparison
+              </button>
+              <button
+                onClick={() => setViewMode("signalsList")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
+                  viewMode === "signalsList"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Signals List
+              </button>
+            </div>
+          </div>
           <ThemeToggle />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6 transition-colors">
-          {/* Token Selector - Modal Style */}
-          <div className="mb-6">
+        {viewMode === "chart" ? (
+          // Price Chart View
+          <>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6 transition-colors">
+            {/* Token Selector - Modal Style */}
+            <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               Select Token
             </label>
@@ -410,11 +456,19 @@ export default function Home() {
           );
         })()}
 
-        {/* No Data Message */}
-        {!loading && chartData.length === 0 && !error && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center transition-colors">
-            <p className="text-gray-500 dark:text-gray-400">Enter token details and click Execute to view the chart</p>
-          </div>
+          {/* No Data Message */}
+          {!loading && chartData.length === 0 && !error && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center transition-colors">
+              <p className="text-gray-500 dark:text-gray-400">Enter token details and click Execute to view the chart</p>
+            </div>
+          )}
+        </>
+        ) : viewMode === "signals" ? (
+          // Market Signals Comparison View
+          <StrategiesView />
+        ) : (
+          // Market Signals List View
+          <SignalsListView />
         )}
       </div>
     </main>
