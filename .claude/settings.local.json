@@ -10,7 +10,8 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(awk:*)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

@@ -182,9 +182,10 @@ export default function StrategiesView() {
       const firstPrice = typeof priceData[0]?.openUSD === 'string'
         ? parseFloat(priceData[0].openUSD)
         : (priceData[0]?.openUSD || 0);
-      const lastPrice = typeof priceData[priceData.length - 1]?.closeUSD === 'string'
-        ? parseFloat(priceData[priceData.length - 1].closeUSD)
-        : (priceData[priceData.length - 1]?.closeUSD || 0);
+      const lastItem = priceData[priceData.length - 1];
+      const lastPrice = typeof lastItem?.closeUSD === 'string'
+        ? parseFloat(lastItem.closeUSD as string)
+        : (lastItem?.closeUSD as number || 0);
 
       let profit: number;
       if (selectedSignal === "LONG") {
