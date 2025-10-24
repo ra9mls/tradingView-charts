@@ -165,13 +165,23 @@ export default function TradingViewChart({ data, chartType = "candlestick", onCh
 
           return isValid;
         })
-        .map((item) => ({
-          time: Math.floor(new Date(item.timestamp).getTime() / 1000) as any,
-          open: item.open,
-          high: item.high,
-          low: item.low,
-          close: item.close,
-        }))
+        .map((item) => {
+          const timeMs = new Date(item.timestamp).getTime();
+          const timeSeconds = Math.floor(timeMs / 1000);
+
+          if (isNaN(timeSeconds)) {
+            console.error("Invalid timestamp:", item.timestamp);
+          }
+
+          return {
+            time: timeSeconds as any,
+            open: item.open,
+            high: item.high,
+            low: item.low,
+            close: item.close,
+          };
+        })
+        .filter((item) => !isNaN(item.time)) // Remove items with NaN time
         .sort((a, b) => a.time - b.time) // Sort by time ascending
         .filter((item, index, array) => {
           // Remove duplicate timestamps - keep only the first occurrence
@@ -180,8 +190,15 @@ export default function TradingViewChart({ data, chartType = "candlestick", onCh
         });
 
       console.log("Processed data:", transformedData.length, "items");
-      console.log("First item:", transformedData[0]);
-      console.log("Last item:", transformedData[transformedData.length - 1]);
+      console.log("First 5 items:", transformedData.slice(0, 5));
+      console.log("Last 5 items:", transformedData.slice(-5));
+
+      // Validate sorting
+      for (let i = 1; i < transformedData.length; i++) {
+        if (transformedData[i].time <= transformedData[i - 1].time) {
+          console.error(`Sort error at index ${i}: time=${transformedData[i].time}, prev time=${transformedData[i - 1].time}`);
+        }
+      }
 
       if (transformedData.length === 0) {
         console.warn("No valid data to display");
