@@ -172,7 +172,12 @@ export default function TradingViewChart({ data, chartType = "candlestick", onCh
           low: item.low,
           close: item.close,
         }))
-        .sort((a, b) => a.time - b.time); // Sort by time ascending
+        .sort((a, b) => a.time - b.time) // Sort by time ascending
+        .filter((item, index, array) => {
+          // Remove duplicate timestamps - keep only the first occurrence
+          if (index === 0) return true;
+          return item.time !== array[index - 1].time;
+        });
 
       console.log("Processed data:", transformedData.length, "items");
       console.log("First item:", transformedData[0]);
